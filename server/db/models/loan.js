@@ -2,7 +2,7 @@ const Sequelize = require('sequelize')
 
 const db = require('../db')
 
-const OutstandingLoan = db.define('outstandingLoan', {
+const Loan = db.define('Loan', {
     description: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -28,7 +28,17 @@ const OutstandingLoan = db.define('outstandingLoan', {
     promisedDate: {
         type: Sequelize.DATE,
         allowNull: false
+    },
+    // null if loan is still pending acceptance by borrower
+    acceptedDate: {
+        type: Sequelize.DATE,
+        allowNull: true
+    },
+    // null if loan is still outstanding (items not yet returned)
+    returnDate: {
+        type: Sequelize.DATE,
+        allowNull: true
     }
 })
 
-module.exports = OutstandingLoan
+module.exports = Loan
