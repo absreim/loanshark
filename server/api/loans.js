@@ -45,20 +45,40 @@ const getCompleted = async () => {
 }
 
 router.get('/',async ctx => {
-    const pending = await getPending()
-    const outstanding = await getOutstanding()
-    const completed = await getCompleted()
-    ctx.body = {pending, outstanding, completed}
+    try {
+        const pending = await getPending()
+        const outstanding = await getOutstanding()
+        const completed = await getCompleted()
+        ctx.body = {pending, outstanding, completed}
+    }
+    catch (err){
+        ctx.throw(500)
+    }
 })
 
 router.get('/pending', async ctx => {
-    ctx.body = await getPending()
+    try {
+        ctx.body = await getPending()
+    }
+    catch (err) {
+        ctx.throw(500)
+    }
 })
 
 router.get('/outstanding', async ctx => {
-    ctx.body = await getOutstanding()
+    try {
+        ctx.body = await getOutstanding()
+    }
+    catch (err) {
+        ctx.throw(500)
+    }
 })
 
 router.get('/completed', async ctx => {
-    ctx.body = await getCompleted()
+    try {
+        ctx.body = await getOutstanding()
+    }
+    catch (err) {
+        ctx.throw(500)
+    }
 })
