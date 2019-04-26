@@ -2,7 +2,7 @@ const Sequelize = require('sequelize')
 
 const db = require('../db')
 
-const Loan = db.define('Loan', {
+const Loan = db.define('loan', {
     description: {
         type: Sequelize.STRING,
         allowNull: false,

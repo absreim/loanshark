@@ -1,7 +1,7 @@
 const KoaRouter = require('koa-router')
 const passport = require('koa-passport')
 
-const db = require('../../db')
+const db = require('../db')
 
 const router = new KoaRouter()
 
