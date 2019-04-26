@@ -1,9 +1,9 @@
 const KoaRouter = require('koa-router')
 
+const authRouter = require('./auth')
+
 const router = new KoaRouter()
 
-router.get('/me', (ctx, _) => {
-    ctx.body = ctx.user
-})
+router.use('/auth', authRouter.routes())
 
 module.exports = router
