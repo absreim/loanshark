@@ -25,11 +25,11 @@ router.post('/logout', ctx => {
     ctx.status = 204
 })
 
-router.post('/signup', ctx => {
+router.post('/signup', async ctx => {
     const reqBody = ctx.request.body
     if (reqBody && reqBody.email && reqBody.password && reqBody.name){
         try {
-            const user = db.models.user.create({
+            const user = await db.models.user.create({
                 email: reqBody.email,
                 name: reqBody.name,
                 password: reqBody.password
@@ -41,8 +41,7 @@ router.post('/signup', ctx => {
         }
         catch (err){
             if (err.name === 'SequelizeUniqueConstraintError'){
-                ctx.body = 'User already exists'
-                ctx.throw(401)
+                ctx.throw(401, 'User already exists')
             }
             else {
                 ctx.throw(500)

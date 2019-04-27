@@ -1,4 +1,4 @@
-const Sequelize = require('Sequelize')
+const Sequelize = require('sequelize')
 const bcrypt = require('bcrypt')
 
 const db = require('../db')
@@ -45,7 +45,9 @@ const User = db.define('user',
  * instanceMethods
  */
 User.prototype.correctPassword = async function(candidatePwd) {
-    return await bcrypt.compare(candidatePwd, this.password)
+    const password = this.password()
+    const compareResult = await bcrypt.compare(candidatePwd, password)
+    return compareResult
 }
 
 /**

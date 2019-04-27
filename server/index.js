@@ -21,5 +21,7 @@ app.use(passport.session())
 const rootRouter = new KoaRouter()
 rootRouter.use('/api', apiRouter.routes())
 
+app.use(rootRouter.routes())
+
 const port = process.env.PORT || 3000
 app.listen(port, () => console.log('Server listening on', port))

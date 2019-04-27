@@ -82,3 +82,5 @@ router.get('/completed', async ctx => {
         ctx.throw(500)
     }
 })
+
+module.exports = router
