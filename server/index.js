@@ -10,7 +10,8 @@ const app = new Koa()
 
 app.use(bodyParser())
 
-app.keys = ['I\'m coming for you!']
+const secret = process.env.SECRET || 'I\'m coming for you!'
+app.keys = [secret]
 
 app.use(session(app))
 
