@@ -71,7 +71,7 @@ const getCompleted = (userId) => {
 }
 
 router.get('/',async ctx => {
-    const userId = ctx.user.id
+    const userId = ctx.state.user.id
     try {
         const [pending, outstanding, completed] = await Promise.all([
             getPending(userId), getOutstanding(userId), getCompleted(userId)
@@ -98,17 +98,20 @@ router.get('/',async ctx => {
 
 router.get('/pending', async ctx => {
     try {
-        const [lending, borrowing] = await getPending(ctx)
+        const userId = ctx.state.user.id
+        const [lending, borrowing] = await getPending(userId)
         ctx.body = {lending, borrowing}
     }
     catch (err) {
+        console.error(err)
         ctx.throw(500)
     }
 })
 
 router.get('/outstanding', async ctx => {
     try {
-        const [lending, borrowing] = await getOutstanding(ctx)
+        const userId = ctx.state.user.id
+        const [lending, borrowing] = await getOutstanding(userId)
         ctx.body = {lending, borrowing}
     }
     catch (err) {
@@ -118,7 +121,8 @@ router.get('/outstanding', async ctx => {
 
 router.get('/completed', async ctx => {
     try {
-        const [lending, borrowing] = await getCompleted(ctx)
+        const userId = ctx.state.user.id
+        const [lending, borrowing] = await getCompleted(userId)
         ctx.body = {lending, borrowing}
     }
     catch (err) {
@@ -132,11 +136,12 @@ router.post('/pending', async ctx => {
     if (reqBody && reqBody.description &&
         reqBody.value && reqBody.lendDate &&
         reqBody.promisedDate && reqBody.borrowerId){
-        ctx.body = db.models.loan.create({
+        ctx.body = await db.models.loan.create({
             description: reqBody.description,
             value: reqBody.value,
             lendDate: reqBody.lendDate,
             promisedDate: reqBody.promisedDate,
+            lenderId: ctx.state.user.id,
             borrowerId: reqBody.borrowerId
         },{
             returning: true
@@ -157,7 +162,8 @@ router.put('/pending/:id/approve', async ctx => {
     try {
         loan = await db.models.loan.findOne({
             where : {
-                borrowerId: loanId,
+                id: loanId,
+                borrowerId: ctx.state.user.id,
                 acceptedDate: null
             }
         })
@@ -193,7 +199,8 @@ router.put('/outstanding/:id/complete', async ctx => {
     try {
         loan = await db.models.loan.findOne({
             where : {
-                borrowerId: loanId,
+                id: loanId,
+                lenderId: ctx.state.user.id,
                 acceptedDate: {
                     [Sequelize.Op.ne]: null
                 },

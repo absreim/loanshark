@@ -6,7 +6,7 @@ const db = require('../db')
 const router = new KoaRouter()
 
 router.get('/me', ctx => {
-    ctx.body = ctx.user
+    ctx.body = ctx.state.user
 })
 
 router.post('/login', ctx => {
