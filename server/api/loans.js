@@ -2,6 +2,7 @@ const KoaRouter = require('koa-router')
 const Sequelize = require('sequelize')
 
 const db = require('../db')
+const {User} = require('../db/models')
 
 const router = new KoaRouter()
 
@@ -19,13 +20,25 @@ const getPending = (userId) => {
         where: {
             lenderId: userId,
             acceptedDate: null
-        }
+        },
+        include: [
+            {
+                model: User,
+                as: 'borrower'
+            }
+        ]
     })
     const borrowingPromise = db.models.loan.findAll({
         where: {
             borrowerId: userId,
             acceptedDate: null
-        }
+        },
+        include: [
+            {
+                model: User,
+                as: 'lender'
+            }
+        ]
     })
     return Promise.all([lendingPromise, borrowingPromise])
 }
@@ -37,7 +50,13 @@ const getOutstanding = (userId) => {
                 [Sequelize.Op.ne]: null
             },
             returnDate: null
-        }
+        },
+        include: [
+            {
+                model: User,
+                as: 'borrower'
+            }
+        ]
     })
     const borrowingPromise = db.models.loan.findAll({
         where: {
@@ -46,7 +65,13 @@ const getOutstanding = (userId) => {
                 [Sequelize.Op.ne]: null
             },
             returnDate: null
-        }
+        },
+        include: [
+            {
+                model: User,
+                as: 'lender'
+            }
+        ]
     })
     return Promise.all([lendingPromise, borrowingPromise])
 }
@@ -57,7 +82,13 @@ const getCompleted = (userId) => {
             returnDate: {
                 [Sequelize.Op.ne]: null
             }
-        }
+        },
+        include: [
+            {
+                model: User,
+                as: 'borrower'
+            }
+        ]
     })
     const borrowingPromise = db.models.loan.findAll({
         where: {
@@ -65,7 +96,13 @@ const getCompleted = (userId) => {
             returnDate: {
                 [Sequelize.Op.ne]: null
             }
-        }
+        },
+        include: [
+            {
+                model: User,
+                as: 'lender'
+            }
+        ]
     })
     return Promise.all([lendingPromise, borrowingPromise])
 }
@@ -161,11 +198,17 @@ router.put('/pending/:id/approve', async ctx => {
     let loan = null
     try {
         loan = await db.models.loan.findOne({
-            where : {
+            where: {
                 id: loanId,
                 borrowerId: ctx.state.user.id,
                 acceptedDate: null
-            }
+            },
+            include: [
+                {
+                    model: User,
+                    as: 'lender'
+                }
+            ]
         })
     }
     catch (err){
@@ -205,7 +248,13 @@ router.put('/outstanding/:id/complete', async ctx => {
                     [Sequelize.Op.ne]: null
                 },
                 returnDate: null
-            }
+            },
+            include: [
+                {
+                    model: User,
+                    as: 'borrower'
+                }
+            ]
         })
     }
     catch (err){
