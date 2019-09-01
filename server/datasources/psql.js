@@ -5,108 +5,67 @@ class Psql extends DataSource {
   constructor({ store }){
     super()
     this.store = store
+    this.PENDING = 'PENDING'
+    this.OUTSTANDING = 'OUTSTANDING'
+    this.COMPLETED = 'COMPLETED'
+    this.LENDING = 'LENDING'
+    this.BORROWING = 'BORROWING'
   }
 
-  getPendingBorrowingLoansForUser(userId){
-    if (userId === null || userId === undefined){
+  getLoans(type, role, user){
+    if (user === null || user === undefined){
       return []
     }
-    else {
-      return this.store.models.loan.findAll({
-        where: {
-          lenderId: userId,
+    const userId = user.id
+    let whereObj = null
+    switch (type){
+      case this.PENDING:
+        whereObj = {
           acceptedDate: null
-        },
-        include: [
-          {
-            model: this.store.models.user,
-            as: 'borrower'
-          },
-          {
-            model: this.store.models.user,
-            as: 'lender'
-          }
-        ]
-      })
-    }
-  }
-
-  getPendingLendingLoansForUser(userId){
-    if (userId === null || userId === undefined){
-      return []
-    }
-    else {
-      return this.store.models.loan.findAll({
-        where: {
-            borrowerId: userId,
-            acceptedDate: null
-        },
-        include: [
-          {
-            model: this.store.models.user,
-            as: 'borrower'
-          },
-          {
-            model: this.store.models.user,
-            as: 'lender'
-          }
-        ]
-      })
-    }
-  }
-
-  getOutstandingBorrowingLoans(userId){
-    if (userId === null || userId === undefined){
-      return []
-    }
-    else {
-      return this.store.models.loan.findAll({
-        where: {
-          borrowerId: userId,
+        }
+        break
+      case this.OUTSTANDING:
+        whereObj = {
           acceptedDate: {
-              [Sequelize.Op.ne]: null
+            [Sequelize.Op.ne]: null
           },
           returnDate: null
-        },
-        include: [
-          {
-            model: this.store.models.user,
-            as: 'borrower'
-          },
-          {
-              model: this.store.models.user,
-              as: 'lender'
+        }
+        break
+      case this.COMPLETED:
+        whereObj = {
+          returnDate: {
+            [Sequelize.Op.ne]: null
           }
-        ]
-      })
+        }
+        break
+      default:
+        throw new Error(`Unknown loan type: ${type}`)
     }
-  }
-
-  getOutstandingBorrowingLoans(userId){
-    if (userId === null || userId === undefined){
-      return []
+    switch (role){
+      case this.BORROWING:
+        whereObj.borrowerId = userId
+        break
+      case this.LENDING:
+        whereObj.lenderId = userId
+        break
+      default:
+        throw new Error(`Unknown role: ${role}`)
     }
-    else {
-      return this.store.models.loan.findAll({
-        where: {
-          lenderId: userId,
-          acceptedDate: {
-              [Sequelize.Op.ne]: null
-          },
-          returnDate: null
+    const { loan, user } = this.store.models
+    return loan.findAll({
+      where: whereObj,
+      include: [
+        {
+          model: user,
+          as: 'borrower'
         },
-        include: [
-          {
-            model: this.store.models.user,
-            as: 'borrower'
-          },
-          {
-              model: this.store.models.user,
-              as: 'lender'
-          }
-        ]
-      })
-    }
+        {
+          model: user,
+          as: 'lender'
+        }
+      ]
+    })
   }
 }
 
