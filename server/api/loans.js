@@ -7,7 +7,7 @@ const {User} = require('../db/models')
 const router = new KoaRouter()
 
 router.use(async (ctx, next) => {
-    if(!ctx.isAuthenticated()){
+    if (!ctx.isAuthenticated()){
         throw(401)
     }
     else {
@@ -107,7 +107,7 @@ const getCompleted = (userId) => {
     return Promise.all([lendingPromise, borrowingPromise])
 }
 
-router.get('/',async ctx => {
+router.get('/', async ctx => {
     const userId = ctx.state.user.id
     try {
         const [pending, outstanding, completed] = await Promise.all([
@@ -215,7 +215,7 @@ router.put('/pending/:id/approve', async ctx => {
         ctx.throw(500)
         return
     }
-    if(!loan){
+    if (!loan){
         ctx.throw(404)
         return
     }
@@ -241,7 +241,7 @@ router.put('/outstanding/:id/complete', async ctx => {
     let loan = null
     try {
         loan = await db.models.loan.findOne({
-            where : {
+            where: {
                 id: loanId,
                 lenderId: ctx.state.user.id,
                 acceptedDate: {
@@ -261,7 +261,7 @@ router.put('/outstanding/:id/complete', async ctx => {
         ctx.throw(500)
         return
     }
-    if(!loan){
+    if (!loan){
         ctx.throw(404)
         return
     }

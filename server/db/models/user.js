@@ -38,8 +38,7 @@ const User = db.define('user',
     },
     {
         indexes: [{unique: true, fields: ['email']}]
-    }
-)
+    })
 
 /**
  * instanceMethods
@@ -53,8 +52,8 @@ User.prototype.correctPassword = async function(candidatePwd) {
 /**
  * classMethods
  */
-User.encryptPassword = async function(plainText) {
-    return await bcrypt.hash(plainText, SALT_ROUNDS)
+User.encryptPassword = function(plainText) {
+    return bcrypt.hash(plainText, SALT_ROUNDS)
 }
 
 /**
@@ -68,8 +67,7 @@ const setSaltAndPassword = async user => {
 
 User.beforeCreate(setSaltAndPassword)
 User.beforeUpdate(setSaltAndPassword)
-User.beforeBulkCreate(async users =>
-    Promise.all(users.map(user => user.setSaltAndPassword()))
-)
+User.beforeBulkCreate(users =>
+    Promise.all(users.map(user => user.setSaltAndPassword())))
 
 module.exports = User

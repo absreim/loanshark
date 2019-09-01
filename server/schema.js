@@ -2,10 +2,12 @@ const { gql } = require('apollo-server-koa')
 
 const typeDefs = gql`
   type Query {
-    allLoans: [Loan]!
-    pendingLoans: [Loan]!
-    outstandingLoans: [Loan]!
-    completedLoans: [Loan]!
+    pendingBorrowingLoans: [Loan]!
+    pendingLendingLoans: [Loan]!
+    outstandingBorrowingLoans: [Loan]!
+    outstandingLendingLoans: [Loan]!
+    completedBorrowingLoans: [Loan]!
+    completedOutstandingLoans: [Loan]!
     me: User
   }
 
@@ -27,6 +29,8 @@ const typeDefs = gql`
 
   type Loan {
     id: Int!
+    lender: User!
+    borrower: User!
     description: String!
     imageName: String
     value: Int!

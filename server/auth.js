@@ -19,7 +19,7 @@ passport.deserializeUser(async function(id, done) {
 passport.use(new LocalStrategy(async function(username, password, done) {
     try {
         const user = await db.models.user.findOne({where: {email: username}})
-        if(user){
+        if (user){
             const correctPwd = await user.correctPassword(password)
             if (correctPwd){
                 done(null, user)
