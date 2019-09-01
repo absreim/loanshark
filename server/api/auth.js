@@ -10,7 +10,7 @@ router.get('/me', ctx => {
 })
 
 router.post('/login', ctx => {
-    return passport.authenticate('local', function(err, user) {
+    return passport.authenticate('local', function(_, user) {
         if (user === false) {
             ctx.throw(401)
         } else {
