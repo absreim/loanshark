@@ -8,7 +8,7 @@ const router = new KoaRouter()
 
 router.use(async (ctx, next) => {
     if (!ctx.isAuthenticated()){
-        throw(401)
+        ctx.throw(401)
     }
     else {
         await next()
@@ -180,7 +180,7 @@ router.post('/pending', async ctx => {
             promisedDate: reqBody.promisedDate,
             lenderId: ctx.state.user.id,
             borrowerId: reqBody.borrowerId
-        },{
+        }, {
             returning: true
         })
     }

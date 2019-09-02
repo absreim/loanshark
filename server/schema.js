@@ -17,7 +17,7 @@ const typeDefs = gql`
     approveLoan(loanId: Int!): Loan
     completeLoan(loanId: Int!): Loan
     login(email: String!, password: String!): User
-    logout: Boolean!
+    logout: Boolean
     signup(email: String!, password: String!, name: String!): User
   }
 

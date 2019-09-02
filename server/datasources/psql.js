@@ -1,5 +1,6 @@
 const { DataSource } = require('apollo-datasource')
 const Sequelize = require('sequelize')
+const { AuthenicationError, UserInputError } = require('apollo-server-koa')
 
 class Psql extends DataSource {
   constructor({ store }){
@@ -52,19 +53,95 @@ class Psql extends DataSource {
       default:
         throw new Error(`Unknown role: ${role}`)
     }
-    const { loan, user } = this.store.models
-    return loan.findAll({
+    const loanModel = this.store.models.loan
+    const userModel = this.store.models.user
+    return loanModel.findAll({
       where: whereObj,
       include: [
         {
-          model: user,
+          model: userModel,
           as: 'borrower'
         },
         {
-          model: user,
+          model: userModel,
           as: 'lender'
         }
       ]
+    })
+  }
+
+  errorOnUnauth(user){
+    if (user === null || user === undefined){
+      throw new AuthenicationError(
+        'You must be logged in to perform this action.'
+        )
+    }
+  }
+
+  createLoan(description, value, lendDate, promisedDate, borrowerId, user){
+    this.errorOnUnauth(user)
+    if (!(description && value >= 0 && lendDate && promisedDate
+      && borrowerId >= 0)){
+      throw new UserInputError('One or more arguments are invalid.')
+    }
+    const loanModel = this.store.models.loan
+    return loanModel.create({
+      description, value, lendDate, promisedDate, borrowerId, lenderId: user.id
+    }, {
+        returning: true
+    })
+  }
+
+  approveLoan(loanId, user){
+    this.errorOnUnauth(user)
+    if (!loanId >= 0){
+      throw new UserInputError('You must specify a loan id.')
+    }
+    const loanModel = this.store.models.loan
+    const userModel = this.store.models.user
+    return loanModel.update({
+      acceptedDate: Sequelize.fn('NOW')
+    }, {
+      where: {
+        id: loanId,
+        borrowerId: user.id,
+        acceptedDate: null
+      },
+      include: [
+        {
+          model: userModel,
+          as: 'lender'
+        }
+      ],
+      returning: true
+    })
+  }
+
+  completeLoan(loanId, user){
+    this.errorOnUnauth(user)
+    if (!loanId >= 0){
+      throw new UserInputError('You must specify a loan id.')
+    }
+    const loanModel = this.store.models.loan
+    const userModel = this.store.models.user
+    return loanModel.update({
+      returnDate: Sequelize.fn('NOW')
+    }, {
+      where: {
+        id: loanId,
+        lenderId: user.id,
+        acceptedDate: {
+          [Sequelize.Op.ne]: null
+        },
+        returnDate: null
+      },
+      include: [
+        {
+          model: userModel,
+          as: 'borrower'
+        }
+      ],
+      returning: true
     })
   }
 }
