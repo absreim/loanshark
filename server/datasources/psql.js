@@ -1,6 +1,7 @@
 const { DataSource } = require('apollo-datasource')
 const Sequelize = require('sequelize')
-const { AuthenicationError, UserInputError } = require('apollo-server-koa')
+const { AuthenicationError,
+  UserInputError, ApolloError } = require('apollo-server-koa')
 
 class Psql extends DataSource {
   constructor({ store }){
@@ -143,6 +144,34 @@ class Psql extends DataSource {
       ],
       returning: true
     })
+  }
+
+  async signup(email, name, password, ctx){
+    if (email === null || email === undefined ||
+      name === null || name === undefined ||
+      password === null || password === undefined){
+      throw new UserInputError(
+        'Email, name, and password are all required to sign up.'
+        )
+    }
+    const userModel = this.store.models.user
+    try {
+      const user = await userModel.create({
+        email, name, password
+      }, {
+        returning: true
+      })
+      ctx.login(user)
+      return user
+    }
+    catch (err){
+      if (err.name === 'SequelizeUniqueConstraintError'){
+          throw new ApolloError('User already exists.')
+      }
+      else {
+          throw new ApolloError('Database error.')
+      }
+    }
   }
 }
 

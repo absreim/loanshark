@@ -6,6 +6,8 @@ const psqlStore = require('./db')
 const PsqlDataSource = require('./datasources/psql')
 const koaApp = require('./koa')
 
+const PORT = 3000
+
 const dataSources = () => ({
   psql: new PsqlDataSource({ store: psqlStore})
 })
@@ -19,7 +21,7 @@ const server = new ApolloServer({
 server.applyMiddleware({ app: koaApp })
 
 if (process.env.NODE_ENV !== 'test'){
-  server
-    .listen({ port: 4000 })
-    .then(({ url }) => console.log(`🚀 app running at ${url}`))
+  koaApp
+    .listen({ port: PORT },
+      () => console.log(`🚀 app running on port ${PORT}`))
 }

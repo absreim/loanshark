@@ -7,7 +7,7 @@ const typeDefs = gql`
     outstandingBorrowingLoans: [Loan]!
     outstandingLendingLoans: [Loan]!
     completedBorrowingLoans: [Loan]!
-    completedOutstandingLoans: [Loan]!
+    completedLendingLoans: [Loan]!
     me: User
   }
 

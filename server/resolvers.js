@@ -77,7 +77,10 @@ const resolvers = {
           }
         })(ctx)
       })
-    }
+    },
+    signup: (_, { email, name, password }, { dataSources, ctx }) => (
+      dataSources.psql.signup(email, name, password, ctx)
+    )
   }
 }
 
