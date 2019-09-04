@@ -1,6 +1,6 @@
 const { DataSource } = require('apollo-datasource')
 const Sequelize = require('sequelize')
-const { AuthenicationError,
+const { AuthenticationError,
   UserInputError, ApolloError } = require('apollo-server-koa')
 
 class Psql extends DataSource {
@@ -73,7 +73,7 @@ class Psql extends DataSource {
 
   errorOnUnauth(user){
     if (user === null || user === undefined){
-      throw new AuthenicationError(
+      throw new AuthenticationError(
         'You must be logged in to perform this action.'
         )
     }
@@ -95,7 +95,7 @@ class Psql extends DataSource {
 
   approveLoan(loanId, user){
     this.errorOnUnauth(user)
-    if (!loanId >= 0){
+    if (!(loanId >= 0)){
       throw new UserInputError('You must specify a loan id.')
     }
     const loanModel = this.store.models.loan
@@ -120,7 +120,7 @@ class Psql extends DataSource {
 
   completeLoan(loanId, user){
     this.errorOnUnauth(user)
-    if (!loanId >= 0){
+    if (!(loanId >= 0)){
       throw new UserInputError('You must specify a loan id.')
     }
     const loanModel = this.store.models.loan

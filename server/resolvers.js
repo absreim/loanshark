@@ -1,5 +1,4 @@
 const passport = require('koa-passport')
-const { AuthenicationError } = require('apollo-server-koa')
 
 const resolvers = {
   Query: {
@@ -38,13 +37,13 @@ const resolvers = {
         ctx.state.user
       )
     ),
-    completedLendingLoans: (_, __, { dataSources, ctx }) => {
+    completedLendingLoans: (_, __, { dataSources, ctx }) => (
       dataSources.psql.getLoans(
         dataSources.psql.COMPLETED,
         dataSources.psql.LENDING,
         ctx.state.user
       )
-    },
+    ),
     me: (_, __, { ctx }) => {
       return ctx.state.user
     }
@@ -57,10 +56,10 @@ const resolvers = {
         )
     ),
     approveLoan: (_, { loanId }, { dataSources, ctx }) => (
-      dataSources.psql.approveLoan(loanId, ctx.user)
+      dataSources.psql.approveLoan(loanId, ctx.state.user)
     ),
     completeLoan: (_, { loanId }, { dataSources, ctx }) => (
-      dataSources.psql.completeLoan(loanId, ctx.user)
+      dataSources.psql.completeLoan(loanId, ctx.state.user)
     ),
     logout: (_, __, { ctx }) => {
       ctx.logout()
