@@ -45,7 +45,9 @@ const resolvers = {
         ctx.state.user
       )
     },
-    me: (_, __, { ctx }) => ctx.state.user
+    me: (_, __, { ctx }) => {
+      return ctx.state.user
+    }
   },
   Mutation: {
     createLoan: (_, { description, value, lendDate,
@@ -64,16 +66,20 @@ const resolvers = {
       ctx.logout()
       return true
     },
-    login: (_, { username, password }, { ctx }) => {
-      ctx.body.username = username
-      ctx.body.password = password
+    login: (_, { email, password }, { ctx }) => {
+      ctx.request.body.username = email
+      ctx.request.body.password = password
       return new Promise((resolve, reject) => {
-        passport.authenticate('local', function(__, user) {
+        passport.authenticate('local', function(err, user) {
           if (user === false) {
-            reject(new AuthenicationError('Wrong username/password combination.'))
+            reject(err)
           } else {
-            ctx.body = user
-            resolve(ctx.login(user))
+            ctx.login(user, function(innerErr) {
+              if (innerErr){
+                reject(innerErr)
+              }
+              resolve(user)
+            })
           }
         })(ctx)
       })

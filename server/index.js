@@ -12,10 +12,13 @@ const dataSources = () => ({
   psql: new PsqlDataSource({ store: psqlStore})
 })
 
+const context = (ctx) => ctx
+
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  dataSources
+  dataSources,
+  context
 })
 
 server.applyMiddleware({ app: koaApp })
