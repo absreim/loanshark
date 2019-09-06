@@ -93,14 +93,14 @@ class Psql extends DataSource {
     })
   }
 
-  approveLoan(loanId, user){
+  async approveLoan(loanId, user){
     this.errorOnUnauth(user)
     if (!(loanId >= 0)){
       throw new UserInputError('You must specify a loan id.')
     }
     const loanModel = this.store.models.loan
     const userModel = this.store.models.user
-    return loanModel.update({
+    const [numRows, rowsArray] = await loanModel.update({
       acceptedDate: Sequelize.fn('NOW')
     }, {
       where: {
@@ -116,16 +116,22 @@ class Psql extends DataSource {
       ],
       returning: true
     })
+    if (numRows === 1){
+      return rowsArray[0]
+    }
+    else {
+      throw new ApolloError('Error attempting to approve loan.')
+    }
   }
 
-  completeLoan(loanId, user){
+  async completeLoan(loanId, user){
     this.errorOnUnauth(user)
     if (!(loanId >= 0)){
       throw new UserInputError('You must specify a loan id.')
     }
     const loanModel = this.store.models.loan
     const userModel = this.store.models.user
-    return loanModel.update({
+    const [numRows, rowsArray] = await loanModel.update({
       returnDate: Sequelize.fn('NOW')
     }, {
       where: {
@@ -144,6 +150,12 @@ class Psql extends DataSource {
       ],
       returning: true
     })
+    if (numRows === 1){
+      return rowsArray[0]
+    }
+    else {
+      throw new ApolloError('Error attempting to complete loan.')
+    }
   }
 
   async signup(email, name, password, ctx){
