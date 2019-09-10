@@ -1,10 +1,13 @@
 const { DataSource } = require('apollo-datasource')
 const Sequelize = require('sequelize')
-const { AuthenticationError,
-  UserInputError, ApolloError } = require('apollo-server-koa')
+const {
+  AuthenticationError,
+  UserInputError,
+  ApolloError
+} = require('apollo-server-koa')
 
 class Psql extends DataSource {
-  constructor({ store }){
+  constructor ({ store }) {
     super()
     this.store = store
     this.PENDING = 'PENDING'
@@ -14,13 +17,13 @@ class Psql extends DataSource {
     this.BORROWING = 'BORROWING'
   }
 
-  getLoans(type, role, user){
-    if (user === null || user === undefined){
+  getLoans (type, role, user) {
+    if (user === null || user === undefined) {
       return []
     }
     const userId = user.id
     let whereObj = null
-    switch (type){
+    switch (type) {
       case this.PENDING:
         whereObj = {
           acceptedDate: null
@@ -44,7 +47,7 @@ class Psql extends DataSource {
       default:
         throw new Error(`Unknown loan type: ${type}`)
     }
-    switch (role){
+    switch (role) {
       case this.BORROWING:
         whereObj.borrowerId = userId
         break
@@ -71,117 +74,144 @@ class Psql extends DataSource {
     })
   }
 
-  errorOnUnauth(user){
-    if (user === null || user === undefined){
+  errorOnUnauth (user) {
+    if (user === null || user === undefined) {
       throw new AuthenticationError(
         'You must be logged in to perform this action.'
-        )
+      )
     }
   }
 
-  createLoan(description, value, lendDate, promisedDate, borrowerId, user){
+  createLoan (description, value, lendDate, promisedDate, borrowerId, user) {
     this.errorOnUnauth(user)
-    if (!(description && value >= 0 && lendDate && promisedDate
-      && borrowerId >= 0)){
+    if (
+      !(
+        description &&
+        value >= 0 &&
+        lendDate &&
+        promisedDate &&
+        borrowerId >= 0
+      )
+    ) {
       throw new UserInputError('One or more arguments are invalid.')
     }
     const loanModel = this.store.models.loan
-    return loanModel.create({
-      description, value, lendDate, promisedDate, borrowerId, lenderId: user.id
-    }, {
+    return loanModel.create(
+      {
+        description,
+        value,
+        lendDate,
+        promisedDate,
+        borrowerId,
+        lenderId: user.id
+      },
+      {
         returning: true
-    })
+      }
+    )
   }
 
-  async approveLoan(loanId, user){
+  async approveLoan (loanId, user) {
     this.errorOnUnauth(user)
-    if (!(loanId >= 0)){
+    if (!(loanId >= 0)) {
       throw new UserInputError('You must specify a loan id.')
     }
     const loanModel = this.store.models.loan
     const userModel = this.store.models.user
-    const [numRows, rowsArray] = await loanModel.update({
-      acceptedDate: Sequelize.fn('NOW')
-    }, {
-      where: {
-        id: loanId,
-        borrowerId: user.id,
-        acceptedDate: null
+    const [numRows, rowsArray] = await loanModel.update(
+      {
+        acceptedDate: Sequelize.fn('NOW')
       },
-      include: [
-        {
-          model: userModel,
-          as: 'lender'
-        }
-      ],
-      returning: true
-    })
-    if (numRows === 1){
+      {
+        where: {
+          id: loanId,
+          borrowerId: user.id,
+          acceptedDate: null
+        },
+        include: [
+          {
+            model: userModel,
+            as: 'lender'
+          }
+        ],
+        returning: true
+      }
+    )
+    if (numRows === 1) {
       return rowsArray[0]
-    }
-    else {
+    } else {
       throw new ApolloError('Error attempting to approve loan.')
     }
   }
 
-  async completeLoan(loanId, user){
+  async completeLoan (loanId, user) {
     this.errorOnUnauth(user)
-    if (!(loanId >= 0)){
+    if (!(loanId >= 0)) {
       throw new UserInputError('You must specify a loan id.')
     }
     const loanModel = this.store.models.loan
     const userModel = this.store.models.user
-    const [numRows, rowsArray] = await loanModel.update({
-      returnDate: Sequelize.fn('NOW')
-    }, {
-      where: {
-        id: loanId,
-        lenderId: user.id,
-        acceptedDate: {
-          [Sequelize.Op.ne]: null
-        },
-        returnDate: null
+    const [numRows, rowsArray] = await loanModel.update(
+      {
+        returnDate: Sequelize.fn('NOW')
       },
-      include: [
-        {
-          model: userModel,
-          as: 'borrower'
-        }
-      ],
-      returning: true
-    })
-    if (numRows === 1){
+      {
+        where: {
+          id: loanId,
+          lenderId: user.id,
+          acceptedDate: {
+            [Sequelize.Op.ne]: null
+          },
+          returnDate: null
+        },
+        include: [
+          {
+            model: userModel,
+            as: 'borrower'
+          }
+        ],
+        returning: true
+      }
+    )
+    if (numRows === 1) {
       return rowsArray[0]
-    }
-    else {
+    } else {
       throw new ApolloError('Error attempting to complete loan.')
     }
   }
 
-  async signup(email, name, password, ctx){
-    if (email === null || email === undefined ||
-      name === null || name === undefined ||
-      password === null || password === undefined){
+  async signup (email, name, password, ctx) {
+    if (
+      email === null ||
+      email === undefined ||
+      name === null ||
+      name === undefined ||
+      password === null ||
+      password === undefined
+    ) {
       throw new UserInputError(
         'Email, name, and password are all required to sign up.'
-        )
+      )
     }
     const userModel = this.store.models.user
     try {
-      const user = await userModel.create({
-        email, name, password
-      }, {
-        returning: true
-      })
+      const user = await userModel.create(
+        {
+          email,
+          name,
+          password
+        },
+        {
+          returning: true
+        }
+      )
       ctx.login(user)
       return user
-    }
-    catch (err){
-      if (err.name === 'SequelizeUniqueConstraintError'){
-          throw new ApolloError('User already exists.')
-      }
-      else {
-          throw new ApolloError('Database error.')
+    } catch (err) {
+      if (err.name === 'SequelizeUniqueConstraintError') {
+        throw new ApolloError('User already exists.')
+      } else {
+        throw new ApolloError('Database error.')
       }
     }
   }
