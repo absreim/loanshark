@@ -3,6 +3,7 @@ const session = require('koa-session')
 const bodyParser = require('koa-bodyparser')
 const passport = require('koa-passport')
 const KoaRouter = require('koa-router')
+const cors = require('@koa/cors')
 
 const apiRouter = require('./api')
 
@@ -23,5 +24,7 @@ const rootRouter = new KoaRouter()
 rootRouter.use('/api', apiRouter.routes())
 
 app.use(rootRouter.routes())
+
+app.use(cors({ credentials: true }))
 
 module.exports = app
